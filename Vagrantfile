@@ -1,6 +1,6 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
-$script = <<SCRIPT
+$rmq_script = <<SCRIPT
   echo I am provisioning...
   sudo yum -y update
 
@@ -25,6 +25,25 @@ $script = <<SCRIPT
 
 SCRIPT
 
+$srv_script = <<SCRIPT
+  sudo docker pull irybakov/async-api
+  sudo docker run -it -d \
+      -p 8082:8082 \
+      -e AMQP_HOST=192.168.33.10 \
+      -e AMQP_PORT=5672 \
+      -e AMQP_USER=admin \
+      -e AMQP_PASSWORD=admin \
+      irybakov/async-api
+
+  sudo docker pull irybakov/async-stub
+  sudo docker run -it -d \
+      -e AMQP_HOST=192.168.33.10 \
+      -e AMQP_PORT=5672 \
+      -e AMQP_USER=admin \
+      -e AMQP_PASSWORD=admin \
+      irybakov/async-stub
+SCRIPT
+
 # All Vagrant configuration is done below. The "2" in Vagrant.configure
 # configures the configuration version (we support older styles for
 # backwards compatibility). Please don't change it unless you know what
@@ -35,13 +54,17 @@ Vagrant.configure(2) do |config|
   # https://docs.vagrantup.com.
 
   # Every Vagrant development environment requires a box. You can search for
-  # boxes at https://atlas.hashicorp.com/search
-  config.vm.provision "shell", inline: $script
-  
+  # boxes at https://atlas.hashicorp.com/search  
   config.vm.define "rmqc" do |rmc|
     rmc.vm.box = "centos/7"
     rmc.vm.network "private_network", ip:"192.168.33.10"
     rmc.vm.network "forwarded_port", guest: 15672, host: 15672
+    rmc.vm.provision "shell", inline: $rmq_script
+
+    config.vm.provider :virtualbox do |vb|
+        vb.customize ["modifyvm", :id, "--memory", "2048"]
+        vb.customize ["modifyvm", :id, "--cpus", "2"]
+    end
       #rmc.vm.provision "shell" do |s|
       #s.inline = $script
       #s.inline = "sudo yum -y update"
@@ -68,10 +91,16 @@ Vagrant.configure(2) do |config|
   end
 
 
-  config.vm.define "rmq1" do |rm1|
-    rm1.vm.box = "centos/7"
+  config.vm.define "services" do |rm1|
+    rm1.vm.box = "williamyeh/centos7-docker"
     rm1.vm.network "private_network", ip:"192.168.34.10"
     rm1.vm.network "forwarded_port", guest: 15672, host: 15673
+    config.vm.provider :virtualbox do |vb|
+        vb.customize ["modifyvm", :id, "--memory", "1024"]
+        vb.customize ["modifyvm", :id, "--cpus", "2"]
+    end
+    rm1.vm.provision "shell", inline: $srv_script
+      
   end
 
 
@@ -104,7 +133,7 @@ Vagrant.configure(2) do |config|
   # backing providers for Vagrant. These expose provider-specific options.
   # Example for VirtualBox:
   #
-   config.vm.provider "virtualbox" do |vb|
+  config.vm.provider "virtualbox" do |vb|
     # Display the VirtualBox GUI when booting the machine
     vb.gui = false
   
