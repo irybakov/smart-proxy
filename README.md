@@ -14,3 +14,17 @@ Then follow steps:
    - run "vagrant up"
    - wait for setup to complete
   
+# How to verify
+   
+   POST http://192.168.34.10:8082/api/ping
+
+   body
+   {
+    "ping": "How are you?"
+   }
+
+Should get
+   
+   {
+    "pong": "PONG: How are you?"
+   }
