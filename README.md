@@ -7,7 +7,7 @@ Here is [Overview](https://github.com/irybakov/smart-proxy/wiki/Overview)
 
 # Quick Start
 
-First of all you chould install [Vagrant](https://www.vagrantup.com/)
+First of all you should install [Vagrant](https://www.vagrantup.com/)
 
 Then follow steps:
    - Download  Vagrantfile from this repo
