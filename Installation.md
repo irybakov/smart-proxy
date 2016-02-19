@@ -2,7 +2,7 @@
 
 ## update and install wget
 
-``` bash
+``` shell
   sudo yum -y update
   sudo yum -y install wget
 ```
